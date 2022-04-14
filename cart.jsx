@@ -13,7 +13,7 @@ const Cart = (props) => {
 
   return <Accordion defaultActiveKey="0">{list}</Accordion>;
 };
-
+//===point to strapi database======
 const useDataApi = (initialUrl, initialData) => {
   const { useState, useEffect, useReducer } = React;
   const [url, setUrl] = useState(initialUrl);
@@ -33,7 +33,9 @@ const useDataApi = (initialUrl, initialData) => {
         const result = await axios(url);
         console.log("FETCH FROM URl");
         if (!didCancel) {
-          dispatch({ type: "FETCH_SUCCESS", payload: result.data });
+          // result.data.data
+          // first data is from axios object, second data is from strapi object
+          dispatch({ type: "FETCH_SUCCESS", payload: result.data.data });
         }
       } catch (error) {
         if (!didCancel) {
@@ -107,8 +109,17 @@ const Products = (props) => {
     //doFetch(query);
   };
   const deleteCartItem = (index) => {
+    //index of item in the cart only
+
     let newCart = cart.filter((item, i) => index != i);
-    setCart(newCart);
+    let target = cart.filter((item, i) => index == i);
+    let newItems = items.map((item, index) => {
+    //restock item
+    if (item.name == target[0].name) item.instock = item.instock + 1;
+      return item;
+      })
+    setCart(newCart); 
+    setItems(newItems);
   };
   const photos = ["apple.png", "orange.png", "beans.png", "cabbage.png"];
 
@@ -165,8 +176,14 @@ const Products = (props) => {
     console.log(`total updated to ${newTotal}`);
     return newTotal;
   };
-  // TODO: implement the restockProducts function
-  const restockProducts = (url) => {};
+  const restockProducts = (url) => {
+    doFetch(url);
+    let newItems = data.map((item) => {
+      let { name, country, cost, instock } = item;
+      return { name, country, cost, instock };
+    });
+    setItems([...items, ...newItems]);
+  };
 
   return (
     <Container>
